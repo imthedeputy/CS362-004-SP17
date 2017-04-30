@@ -26,9 +26,9 @@ interface.o: interface.h interface.c
 	gcc -c interface.c -g  $(CFLAGS)
 
 unittestresults.out: unittest
-	./unittest &> unittestresult.out
-	gcov -b dominion.c >> unittestresult.out
-	cat dominion.c.gcov >> unittestresult.out
+	./unittest &> unittestresults.out
+	gcov -b dominion.c >> unittestresults.out
+	cat dominion.c.gcov >> unittestresults.out
 
 unittest: unitTestMain.c unitTestUtilities.h unitTest.h dominion.h ${TESTSOURCES}
 	gcc -o unittest unitTestMain.c ${TESTSOURCES} $(CFLAGS) -lm
