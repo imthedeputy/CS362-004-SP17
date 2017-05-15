@@ -130,6 +130,9 @@ int getWinners(int players[MAX_PLAYERS], struct gameState *state);
 /* Set array position of each player who won (remember ties!) to
    1, others to 0 */
 
+int updateCoins(int player, struct gameState *state, int bonus);
+/*Count the number of coins a player has and update the coins state variable*/
+
 int playAdventurer(struct gameState *state);
 int playSmithy(struct gameState *state, int handPos);
 int playVillage(struct gameState *state, int handPos);

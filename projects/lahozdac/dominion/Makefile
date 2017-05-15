@@ -1,5 +1,7 @@
+CXX = gcc -std=c99
 CFLAGS = -Wall -fpic -coverage
 TESTSOURCES = dominion.o rngs.o unitTestUtilities.o unittest1.o unittest2.o unittest3.o unittest4.o cardtest1.o cardtest2.o cardtest3.o cardtest4.o
+RTESTSOURCES = dominion.o rngs.o unitTestUtilities.o randomtestadventurer.o randomtestcard1.o randomtestcard2.o
 
 rngs.o: rngs.h rngs.c
 	gcc -c rngs.c -g  $(CFLAGS)
@@ -33,6 +35,24 @@ unittestresults.out: unittest
 unittest: unitTestMain.c unitTestUtilities.h unitTest.h dominion.h ${TESTSOURCES}
 	gcc -o unittest unitTestMain.c ${TESTSOURCES} $(CFLAGS) -lm
 
+randomtestadventurer.out: randomTest
+	./randomTest 1 100 &> randomtestadventurer.out
+	gcov -b dominion.c >> randomtestadventurer.out
+	cat dominion.c.gcov >> randomtestadventurer.out
+
+randomtestcard1.out: randomTest
+	./randomTest 2 100 &> randomtestcard1.out
+	gcov -b dominion.c >> randomtestcard1.out
+	cat dominion.c.gcov >> randomtestcard1.out
+
+randomtestcard2.out: randomTest
+	./randomTest 3 100 &> randomtestcard2.out
+	gcov -b dominion.c >> randomtestcard2.out
+	cat dominion.c.gcov >> randomtestcard2.out
+
+randomTest: randomTestMain.c unitTestUtilities.h randomTest.h dominion.h ${RTESTSOURCES}
+	${CXX} -o randomTest randomTestMain.c ${RTESTSOURCES} $(CFLAGS) -lm
+
 unitTestUtilities.o: unitTestUtilities.h unitTestUtilities.c
 	gcc -c unitTestUtilities.c -g $(CFLAGS)
 
@@ -60,10 +80,19 @@ cardtest3.o: cardtest3.c unitTest.h unitTestUtilities.h unitTestUtilities.c
 cardtest4.o: cardtest4.c unitTest.h unitTestUtilities.h unitTestUtilities.c
 	gcc -c cardtest4.c -g $(CFLAGS)
 
+randomtestadventurer.o: randomtestadventurer.c randomTest.h unitTestUtilities.h unitTestUtilities.c
+	gcc -c randomtestadventurer.c -g $(CFLAGS)
+
+randomtestcard1.o: randomtestcard1.c randomTest.h unitTestUtilities.h unitTestUtilities.c
+	gcc -c randomtestcard1.c -g $(CFLAGS)
+
+randomtestcard2.o: randomtestcard2.c randomTest.h unitTestUtilities.h unitTestUtilities.c
+	gcc -c randomtestcard2.c -g $(CFLAGS)
+
 player: player.c interface.o
 	gcc -o player player.c -g  dominion.o rngs.o interface.o $(CFLAGS) -lm
 
 all: playdom player
 
 clean:
-	rm -f *.o playdom testDrawCard badTestDrawCard testSuite unittest player *.out *.gcov *.gcda *.gcno *.so
+	rm -f *.o playdom testDrawCard badTestDrawCard testSuite unittest player randomTest *.out *.gcov *.gcda *.gcno *.so

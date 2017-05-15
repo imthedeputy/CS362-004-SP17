@@ -1,5 +1,63 @@
-#include "dominion.h"
-#include <stdio.h>
+#include "unitTestUtilities.h"
+
+void randomizeGameState (struct gameState* state, int seed) {
+	int i, j, cards, deck, discard, hand;
+	srand(seed);
+	
+	state->numPlayers = (rand() % MAX_PLAYERS) + 1;
+
+	//Populate each supply pile with 0-20 cards and 0-2 embargo tokens
+	for (i = 0; i < treasure_map; ++i) {
+		state->supplyCount[i] = rand() % 21;
+		state->embargoTokens[i] = rand() % 3;
+	}
+
+	state->outpostPlayed = rand() % 2;
+	state->outpostTurn = rand() % 2;
+	state->whoseTurn = rand() % state->numPlayers;
+	state->phase = 0;
+	state->numActions = rand() % 3;
+	state->numBuys = rand() % 3;
+
+	for (i = 0; i < state->numPlayers; ++i) {
+		cards = rand() % MAX_DECK + 1;
+		//Omit a + 1 here so that deck is at most cards - 1
+		deck = rand() % cards;
+		//Since deck is at most cards - 1, hand is at least 1
+		hand = cards - deck;
+		//Here discard could equal deck
+		discard = rand() % (deck + 1);
+
+		//Randomize draw deck
+		state->deckCount[i] = deck - discard;
+		for (j = 0; j < state->deckCount[i]; ++j)
+			state->deck[i][j] = rand() % (treasure_map + 1);
+
+		//Randomize discard
+		state->discardCount[i] = discard;
+		for (j = 0; j < state->discardCount[i]; ++j)
+			state->discard[i][j] = rand() % (treasure_map + 1);
+
+		//If the current player, randomize played cards
+		if (i == state->whoseTurn) {
+			//Omit + 1 so that player will have at least one card in hand, for testing
+			state->playedCardCount = rand() % hand;
+			state->handCount[i] = hand - state->playedCardCount;
+
+			for (j = 0; j < state->playedCardCount; ++j)
+				state->playedCards[j] = rand() % (treasure_map + 1);
+		}
+		else
+			state->handCount[i] = hand;
+
+		//Randomize hand
+		for(j = 0; j < state->handCount[i]; ++j)
+			state->hand[i][j] = rand() % (treasure_map + 1);
+	}
+
+	//Get coin count for the current player
+	state->coins = updateCoins(state->whoseTurn,state,0);
+}
 
 int cmpGameState (struct gameState* gs1, struct gameState* gs2) {
 	int i, j, k, l;
@@ -62,13 +120,91 @@ int cmpGameState (struct gameState* gs1, struct gameState* gs2) {
 	return 1;
 }
 
-void printGameState(struct gameState* state1, struct gameState* state2) {
-	printf("numPlayers: %d %d\n",state1->numPlayers,state2->numPlayers);
-	printf("outpostPlayed: %d %d\n",state1->outpostPlayed,state2->outpostPlayed);
-	printf("outpostTurn: %d %d\n",state1->outpostTurn,state2->outpostTurn);
-	printf("whoseTurn: %d %d\n",state1->whoseTurn,state2->whoseTurn);
-	printf("phase: %d %d\n",state1->phase,state2->phase);
-	printf("numActions: %d %d\n",state1->numActions,state2->numActions);
-	printf("coins: %d %d\n",state1->coins,state2->coins);
-	printf("numBuys: %d %d\n",state1->numBuys,state2->numBuys);
+void printTest(struct test* t) {
+	printf("GAME STATE:\n");
+	printf("\n");
+	printf("numPlayers: %d %d\n",t->preCond->numPlayers,t->postCond->numPlayers);
+	printf("outpostPlayed: %d %d\n",t->preCond->outpostPlayed,t->postCond->outpostPlayed);
+	printf("outpostTurn: %d %d\n",t->preCond->outpostTurn,t->postCond->outpostTurn);
+	printf("whoseTurn: %d %d\n",t->preCond->whoseTurn,t->postCond->whoseTurn);
+	printf("phase: %d %d\n",t->preCond->phase,t->postCond->phase);
+	printf("numActions: %d %d\n",t->preCond->numActions,t->postCond->numActions);
+	printf("coins: %d %d\n",t->preCond->coins,t->postCond->coins);
+	printf("numBuys: %d %d\n",t->preCond->numBuys,t->postCond->numBuys);
+	printf("\n");
+	printf("PLAYER STATES:\n");
+	printf("\n");
+
+	int i;
+	for (i = 0; i < t->postCond->numPlayers; ++i) {
+		printf("PLAYER %d:\n",i + 1);
+		printf("\n");
+		printf("handCount: %d %d\n",t->preCond->handCount[i],t->postCond->handCount[i]);
+	}
 }
+
+void printErr(struct test* t) {
+	int i;
+
+	printf("Test No. %d had %d Errors:\n",t->testNo,t->errCount);
+	for(i = 0; i < t->errCount; ++i) {
+		printf("%s\n",t->status[i]);
+	}
+}
+
+int getCardDeckCount (int player, int card, struct gameState* state) {
+	int count = 0;
+	int i;
+
+	for (i = 0; i < state->deckCount[player]; ++i) {
+		if (state->deck[player][i] == card)
+			count++;
+	}
+
+	return count;
+}
+
+int getCardHandCount (int player, int card, struct gameState* state) {
+	int count = 0;
+	int i;
+
+	for (i = 0; i < state->handCount[player]; ++i) {
+		if (state->hand[player][i] == card)
+			count++;
+	}
+
+	return count;
+}
+
+int getCardDiscardCount (int player, int card, struct gameState* state) {
+	int count = 0;
+	int i;
+
+	for (i = 0; i < state->discardCount[player]; ++i) {
+		if (state->discard[player][i] == card)
+			count++;
+	}
+
+	return count;
+}
+
+int getCardPlayedCount (int card, struct gameState* state) {
+	int count = 0;
+	int i;
+
+	for (i = 0; i < state->playedCardCount; ++i) {
+		if (state->playedCards[i] == card)
+			count++;
+	}
+
+	return count;
+}
+
+void addError(struct test* t, const char* s) {
+	strcpy(t->status[t->errCount],s);
+	t->err = 1;
+	t->errCount++;
+}
+
+
+
