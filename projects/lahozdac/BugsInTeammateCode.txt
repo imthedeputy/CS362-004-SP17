@@ -1,0 +1,134 @@
+BUG 1
+
+Title: When a Smithy is played, a different card from hand is added to played cards instead
+
+Class: Software Bug
+
+Date: 5/28/17          
+Reported By: Carlos La Hoz Daniels  
+Email: lahozdac@oregonstate.edu     
+
+
+Product:  Dominion              Version: NA
+Platform:  MacOS                Version: 10.12.4
+Browser: NA                     Version: NA
+URL: NA       
+
+Is it reproducible: Yes
+
+Description
+===========
+When a Dominion card is played, under normal circumstances it is added to the played cards pile after its effects are resolved. When Smithy is played, a different card from the hand is put into the played cards pile instead
+
+
+Steps to Produce/Reproduce
+--------------------------
+General Steps:
+
+1. Set up a valid game state where the active player has a Smithy in their hand.
+
+2. Play the Smithy card by triggering cardEffect(). 
+
+3. After Smithy resolves, check the Played Cards pile. The top card will be a card from the player’s hand other than the Smithy that was played.*
+
+4. Check the player’s hand and note that the Smithy is still at its original hand position.
+
+*Note that it could (on occasion) still be a Smithy. If this happens, it is because the player had more than one Smithy in their hand, and one of the other Smithies was discarded.
+
+Steps I used:
+
+1. In the dominion directory, use the command "make randomtestcard1.out" to execute tests and generate output.
+
+2. Find and open the output file "randomtestcard1.out".
+
+3. The first part of the file will be a list of results from 100 randomized tests. In the vast majority of cases, note that there is one error, with the description "Last played card is not Smithy". A few tests will also pass in instances where the card discarded happens to also be a Smithy.
+
+Expected Results
+----------------
+The Smithy that was at the hand position used to trigger playCard() should be added to the Played Cards pile after resolving its effects, and not any other card.
+
+
+Actual Results
+--------------
+As above, under Steps to Reproduce. A different card ends up in the Played Cards pile (thought it’s possible for that card to also be a Smithy).
+
+
+Workarounds
+-----------
+None
+
+
+Attachments
+-----------
+See randomtestcard1.out file in this directory
+
+
+Other Information
+-----------------
+
+BUG 2
+
+Title: When an Adventurer is played, it is not discarded
+
+Class: Software Bug
+
+Date: 5/28/17          
+Reported By: Carlos La Hoz Daniels  
+Email: lahozdac@oregonstate.edu     
+
+
+Product:  Dominion              Version: NA
+Platform:  MacOS                Version: 10.12.4
+Browser: NA                     Version: NA
+URL: NA       
+
+Is it reproducible: Yes
+
+Description
+===========
+When a Dominion card is played, under normal circumstances it is added to the played cards pile after its effects are resolved. When and Adventurer is played, it remains in the player's hand instead.
+
+
+Steps to Produce/Reproduce
+--------------------------
+General Steps:
+
+1. Set up a valid game state where the active player has an Adventurer in their hand.
+
+2. Play the Adventurer card by triggering cardEffect(). 
+
+3. After Adventurer resolves, check the Played Cards pile. Note that it is the same as before and the Adventurer is not on top.
+
+4. Check the player’s hand and note that the Adventurer is still at its original hand position.
+
+Steps I used:
+
+1. In the dominion directory, use the command "make unittestresults.out" to execute tests and generate output.
+
+2. Find and open the output file "unittestresults.out".
+
+3. Find the section entitled "TESTING ADVENTURER". Note that there are 3 related errors in both test cases; there are too many cards in hand (because the Adventurer is still there), there aren't enough cards in the Played Cards pile, and the top card in Played Cards isn't an Adventurer.
+
+Expected Results
+----------------
+The Adventurer should be added to the Played Cards pile and removed from the player's hand, handCount should decrement, and playedCardCount should increment.
+
+
+Actual Results
+--------------
+The handCount, playedCardCount, hand and playedCards states all remain static.
+
+
+Workarounds
+-----------
+None
+
+
+Attachments
+-----------
+See unittestresults.out file in this directory
+
+
+Other Information
+-----------------
+
